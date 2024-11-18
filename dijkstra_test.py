@@ -1,9 +1,22 @@
 '''Module provides Dijkstra algorythm'''
 
 import math
-from queue import PriorityQueue
+import heapq
 import networkx as nx
 import osmnx as ox
+
+class PriorityQueue:
+    def __init__(self):
+        self._container = []
+
+    def empty(self):
+        return len(self._container) == 0
+
+    def put(self, item, priority):
+        heapq.heappush(self._container, (priority, item))
+
+    def get(self):
+        return heapq.heappop(self._container)[1]
 
 
 def dijkstra(loc_graph, start, end):
@@ -16,23 +29,23 @@ def dijkstra(loc_graph, start, end):
     visited_nodes = set()
 
     priority = PriorityQueue()
-    priority.put((0, start))
+    priority.put(start, 0)
 
     while not priority.empty():
-        current_distance, current_node = priority.get()
+        current_node = priority.get()
+        current_distance = node_disctances[current_node]
 
         if current_node in visited_nodes:
             continue
         visited_nodes.add(current_node)
-        if current_node == end:
-            break
+
         for adjacent_node, attributes in loc_graph[current_node].items():
-            edge_distance = attributes[0].get('length', 1)
+            edge_distance = attributes.get('length', 1)
             new_disctance = current_distance + edge_distance
             if new_disctance < node_disctances[adjacent_node]:
                 node_disctances[adjacent_node] = new_disctance
                 graph_for_path_restoration[adjacent_node] = current_node
-                priority.put((new_disctance, adjacent_node))
+                priority.put(adjacent_node, new_disctance)
     path = []
     this_node = end
     while this_node is not None:
@@ -41,21 +54,31 @@ def dijkstra(loc_graph, start, end):
     path.reverse()
     return path, node_disctances[end]
 
+origin_point = (50.4501, 30.5234)
+destination_point = (50.4017, 30.3928)
+place_name = "Kyiv, Ukraine"
 
-city1_name = 'Kyiv, Ukraine'
-city2_name = 'Odessa, Ukraine'
+graph = ox.graph_from_place(place_name, network_type='drive')
+origin_node = ox.distance.nearest_nodes(graph, origin_point[1], origin_point[0])
+destination_node = ox.distance.nearest_nodes(graph, destination_point[1], destination_point[0])
 
-city1_coords = ox.geocode(city1_name)
-city2_coords = ox.geocode(city2_name)
-airdistance = ox.distance.great_circle(city1_coords[0], city1_coords[1], \
-                                       city2_coords[0], city2_coords[1])
-
-graph_city1 = ox.graph_from_point(city1_coords, dist=airdistance, network_type='drive')
-graph_city2 = ox.graph_from_point(city2_coords, dist=airdistance, network_type='drive')
-
-
-working_graph_area = nx.compose(graph_city1, graph_city2)
-node1 = ox.distance.nearest_nodes(working_graph_area, city1_coords[1], city2_coords[0])
-node2 = ox.distance.nearest_nodes(working_graph_area, city2_coords[1], city2_coords[0])
-shortest_path, distance_total = dijkstra(working_graph_area, node1, node2)
+shortest_path, distance_total = dijkstra(graph, origin_node, origin_node)
 print(shortest_path, distance_total)
+print(ox.shortest_path(graph, origin_node, destination_node, weight='length'))
+# city1_name = 'Kyiv, Ukraine'
+# city2_name = 'Odessa, Ukraine'
+
+# city1_coords = ox.geocode(city1_name)
+# city2_coords = ox.geocode(city2_name)
+# airdistance = ox.distance.great_circle(city1_coords[0], city1_coords[1], \
+#                                        city2_coords[0], city2_coords[1])
+
+# graph_city1 = ox.graph_from_point(city1_coords, dist=airdistance/2, network_type='drive')
+# graph_city2 = ox.graph_from_point(city2_coords, dist=airdistance/2, network_type='drive')
+
+
+# working_graph_area = nx.compose(graph_city1, graph_city2)
+# node1 = ox.distance.nearest_nodes(working_graph_area, city1_coords[1], city1_coords[0])
+# node2 = ox.distance.nearest_nodes(working_graph_area, city2_coords[1], city2_coords[0])
+# shortest_path, distance_total = dijkstra(working_graph_area, node1, node2)
+# print(shortest_path, distance_total)
