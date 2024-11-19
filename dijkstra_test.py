@@ -3,6 +3,7 @@
 import math
 import heapq
 import networkx as nx
+import time
 import osmnx as ox
 
 class PriorityQueue:
@@ -18,7 +19,6 @@ class PriorityQueue:
     def get(self):
         return heapq.heappop(self._container)[1]
 
-
 def restoration(graph, end):
     path = []
     this_node = end
@@ -28,11 +28,11 @@ def restoration(graph, end):
     path.reverse()
     return path
 
-
 def dijkstra(loc_graph, start, end):
     '''
-    
+    dijkstra
     '''
+
     node_disctances = {node: math.inf for node in loc_graph.nodes}
     node_disctances[start] = 0
     graph_for_path_restoration = {node: None for node in loc_graph.nodes}
@@ -45,10 +45,11 @@ def dijkstra(loc_graph, start, end):
         current_node = priority.get()
         current_distance = node_disctances[current_node]
 
-
         if current_node in visited_nodes:
             continue
         visited_nodes.add(current_node)
+        if current_node == end:
+            break
 
         for adjacent_node, attributes in loc_graph[current_node].items():
             edge_distance = attributes[0].get('length', 1)
@@ -66,19 +67,33 @@ def dijkstra(loc_graph, start, end):
     shortest_path = restoration(graph_for_path_restoration, end)
     return shortest_path, node_disctances[end]
 
-origin_point = (50.4501, 30.5234)
-destination_point = (50.4017, 30.3928)
-place_name = "Kyiv, Ukraine"
 
-graph = ox.graph_from_place(place_name, network_type='drive')
-origin_node = ox.distance.nearest_nodes(graph, origin_point[1], origin_point[0])
-destination_node = ox.distance.nearest_nodes(graph, destination_point[1], destination_point[0])
 
-shortest1_path, distance_total = dijkstra(graph, origin_node, destination_node)
-print(len(shortest1_path), distance_total)
-print(len(ox.shortest_path(graph, origin_node, destination_node, weight='length')))
+def main():
+    '''main'''
+    start = time.time()
+    origin_point = (50.4501, 30.5234)
+    destination_point = (50.4017, 30.3928)
+    place_name = "Kyiv, Ukraine"
+
+    graph = ox.graph_from_place(place_name, network_type='drive')
+    origin_node = ox.distance.nearest_nodes(graph, origin_point[1], origin_point[0])
+    destination_node = ox.distance.nearest_nodes(graph, destination_point[1], destination_point[0])
+
+    shortest1_path, distance_total = dijkstra(graph, origin_node, destination_node)
+    end = time.time()
+
+    exec_time = end - start
+    print(len(shortest1_path), distance_total)
+    print(len(ox.shortest_path(graph, origin_node, destination_node, weight='length')))
+    print(round(exec_time ,2))
+    
+
+
+main()
+
 # city1_name = 'Kyiv, Ukraine'
-# city2_name = 'Odessa, Ukraine'
+# city2_name = 'Chernihiv, Ukraine'
 
 # city1_coords = ox.geocode(city1_name)
 # city2_coords = ox.geocode(city2_name)
