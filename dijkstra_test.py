@@ -19,13 +19,23 @@ class PriorityQueue:
         return heapq.heappop(self._container)[1]
 
 
+def restoration(graph, end):
+    path = []
+    this_node = end
+    while this_node is not None:
+        path.append(this_node)
+        this_node = graph[this_node]
+    path.reverse()
+    return path
+
+
 def dijkstra(loc_graph, start, end):
     '''
     
     '''
-    node_disctances = {node:math.inf for node in loc_graph.nodes}
+    node_disctances = {node: math.inf for node in loc_graph.nodes}
     node_disctances[start] = 0
-    graph_for_path_restoration = {node:None for node in loc_graph.nodes}
+    graph_for_path_restoration = {node: None for node in loc_graph.nodes}
     visited_nodes = set()
 
     priority = PriorityQueue()
@@ -35,24 +45,26 @@ def dijkstra(loc_graph, start, end):
         current_node = priority.get()
         current_distance = node_disctances[current_node]
 
+
         if current_node in visited_nodes:
             continue
         visited_nodes.add(current_node)
 
         for adjacent_node, attributes in loc_graph[current_node].items():
-            edge_distance = attributes.get('length', 1)
+            edge_distance = attributes[0].get('length', 1)
             new_disctance = current_distance + edge_distance
             if new_disctance < node_disctances[adjacent_node]:
                 node_disctances[adjacent_node] = new_disctance
                 graph_for_path_restoration[adjacent_node] = current_node
                 priority.put(adjacent_node, new_disctance)
-    path = []
-    this_node = end
-    while this_node is not None:
-        path.append(this_node)
-        this_node = graph_for_path_restoration[this_node]
-    path.reverse()
-    return path, node_disctances[end]
+    # path = []
+    # this_node = end
+    # while this_node is not None:
+    #     path.append(this_node)
+    #     this_node = graph_for_path_restoration[this_node]
+    # path.reverse()
+    shortest_path = restoration(graph_for_path_restoration, end)
+    return shortest_path, node_disctances[end]
 
 origin_point = (50.4501, 30.5234)
 destination_point = (50.4017, 30.3928)
@@ -62,9 +74,9 @@ graph = ox.graph_from_place(place_name, network_type='drive')
 origin_node = ox.distance.nearest_nodes(graph, origin_point[1], origin_point[0])
 destination_node = ox.distance.nearest_nodes(graph, destination_point[1], destination_point[0])
 
-shortest_path, distance_total = dijkstra(graph, origin_node, origin_node)
-print(shortest_path, distance_total)
-print(ox.shortest_path(graph, origin_node, destination_node, weight='length'))
+shortest1_path, distance_total = dijkstra(graph, origin_node, destination_node)
+print(len(shortest1_path), distance_total)
+print(len(ox.shortest_path(graph, origin_node, destination_node, weight='length')))
 # city1_name = 'Kyiv, Ukraine'
 # city2_name = 'Odessa, Ukraine'
 
