@@ -1,25 +1,32 @@
 '''Module provides Dijkstra algorythm'''
 
 import math
+import time
 import heapq
 import networkx as nx
-import time
 import osmnx as ox
 
 class PriorityQueue:
+    '''
+    Priority Queue doctest
+    '''
     def __init__(self):
         self._container = []
 
     def empty(self):
+        '''insert doctest'''
         return len(self._container) == 0
 
     def put(self, item, priority):
+        '''insert doctest'''
         heapq.heappush(self._container, (priority, item))
 
     def get(self):
+        '''insert doctest'''
         return heapq.heappop(self._container)[1]
 
 def restoration(graph, end):
+    '''insert doctest'''
     path = []
     this_node = end
     while this_node is not None:
@@ -69,7 +76,7 @@ def dijkstra(loc_graph, start, end):
 
 
 
-def main():
+def shortest_distance():
     '''main'''
     start = time.time()
     origin_point = (50.4501, 30.5234)
@@ -90,7 +97,7 @@ def main():
     
 
 
-main()
+
 
 # city1_name = 'Kyiv, Ukraine'
 # city2_name = 'Chernihiv, Ukraine'
