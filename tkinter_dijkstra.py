@@ -1,9 +1,10 @@
 '''tkinter'''
 
 import math
-from tkinter import ttk
+from ctypes import windll #not vital import, remove if too slow
 from tkinter import *
 from tkinter import messagebox
+from tkinter import ttk
 import time
 import heapq
 import networkx as nx
@@ -14,6 +15,9 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,
                                                NavigationToolbar2Tk)
 
+OPTIONS = ['Dijkstra', 'A*']
+LG = ('Verdana', 12, "bold")
+SM = ('Verdana', 10)
 
 class PriorityQueue:
     '''
@@ -40,11 +44,11 @@ def error_handler(func: callable):
         try:
             return func(*args, **kwargs)
         except ConnectionError:
-            messagebox.showwarning(
+            messagebox.showerror(
                 'Connection Error', 'Please check your internet connection and try again'
                 )
         except InsufficientResponseError:
-            messagebox.showwarning('meow', 'meow')
+            messagebox.showwarning('Querry Error', 'Unable to find the start or destination point. Please try again')
     return wrapper
 
 
@@ -95,7 +99,7 @@ def dijkstra(loc_graph, start, end):
 
 
 @error_handler
-def shortest_distance(origin_point: str, destination_point: str):
+def shortest_distance(origin_point: str, destination_point: str, algorithm_type: str):
     '''main'''
     time_start = time.time()
 
@@ -112,7 +116,12 @@ def shortest_distance(origin_point: str, destination_point: str):
     working_graph_area = nx.compose(graph_city1, graph_city2)
     node1 = ox.distance.nearest_nodes(working_graph_area, city1_coords[1], city1_coords[0])
     node2 = ox.distance.nearest_nodes(working_graph_area, city2_coords[1], city2_coords[0])
-    shortest_path, distance_total = dijkstra(working_graph_area, node1, node2)
+    
+    if algorithm_type == 'Dijkstra':
+        shortest_path, distance_total = dijkstra(working_graph_area, node1, node2)
+    else:
+        shortest_path, distance_total = dijkstra(working_graph_area, node1, node2)
+
 
     time_end = time.time()
     exec_time = time_end - time_start
@@ -126,14 +135,20 @@ def main():
     def handle_click():
         exec_time = 0
         shor_distance = 0
+        method = value_string.get()
         start = e1.get()
         end = e2.get()
+
+        print(method)
 
         if not start or not end:
             messagebox.showwarning('Error', 'Please enter a start point and try again.')
             return
-
-        exec_time, shor_distance, working_distance, route = shortest_distance(start, end)
+        
+        if method == 'Select an algorithm':
+            messagebox.showwarning('Error', 'Please select an algorithm and try again.')
+            return
+        exec_time, shor_distance, working_distance, route = shortest_distance(start, end, method)
         duration.config(text=f"Time: {exec_time:.2f}s")
         distance.config(text=f"Time: {(shor_distance / 1000):.2f}km")
         ax.clear()
@@ -156,46 +171,55 @@ def main():
         # ox.plot_grap
 
     root = Tk()
+    windll.shcore.SetProcessDpiAwareness(1)
     side_nav = Frame(root)
     vis_frame = Frame(root)
 
-    entry_frame = Frame(side_nav, padx=20, pady=20)
-    stats_frame = Frame(side_nav, padx=20, pady=40)
 
-    ################################### 
-    fi = Figure((5,5), dpi=100)
+    root.call("source", "Azure/azure.tcl")
+    root.call("set_theme", "dark")
+
+    entry_frame = Frame(side_nav, padx=20, width=240)
+    entry_frame.grid_propagate(False)
+    stats_frame = Frame(side_nav, padx=20, pady=40)
+    value_string = StringVar(root, 'Select an algorithm..')
+
+    ###################################
+    fi = Figure((6,6), dpi=100)
     ax = fi.add_subplot()
     ax.axis('off')
     canvas = FigureCanvasTkAgg(fi, vis_frame)
     NavigationToolbar2Tk(canvas)
+    h1 = Label(root, text='Find Shortest Path.', font=('Courier', 13, 'bold'))
 
-    h1 = Label(entry_frame, text='Find Shortest Path:')
-    l1 = Label(entry_frame, text='From')
-    l2 = Label(entry_frame, text='to')
+    op1 = ttk.OptionMenu(entry_frame, value_string, 'Select an algorithm', 'Dijkstra', 'A*')
 
-    e1 = ttk.Entry(entry_frame)
-    e2 = ttk.Entry(entry_frame)
+    l1 = Label(entry_frame, text='From', font=LG)
+    l2 = Label(entry_frame, text='To', font=LG)
+
+    e1 = ttk.Entry(entry_frame, font=LG)
+    e2 = ttk.Entry(entry_frame, font=LG)
 
 
-    duration = Label(stats_frame, text="Time:")
-    distance = Label(stats_frame, text="Distance:")
+    duration = Label(stats_frame, text="Time:", font=SM)
+    distance = Label(stats_frame, text="Distance:", font=SM)
 
-    action = Button(
-        entry_frame, 
-        pady=5, 
-        padx=5, 
-        text="Find shortest distance:", 
-        command=handle_click
+    action = ttk.Button(
+        entry_frame,
+        text="Find shortest distance:",
+        command=handle_click,
         )
 
-    h1.pack(pady=10)
-    l1.pack()
-    e1.pack()
-    l2.pack()
-    e2.pack()
-    action.pack(pady=20)
-    duration.pack()
-    distance.pack(pady=20)
+    l1.pack(anchor='w', pady=5)
+    e1.pack(ipady=5)
+    l2.pack(anchor='w',  pady=5)
+    e2.pack(ipady=5)
+    h1.place(x=10, y=10)
+
+    op1.pack(anchor='w', pady=25)
+    action.pack(pady=15)
+    duration.pack(anchor='w')
+    distance.pack(pady=20, anchor='w')
     canvas.get_tk_widget().pack()
 
 
@@ -203,8 +227,8 @@ def main():
 
 
     ###################################
-    entry_frame.grid(row=0,column=0)
-    stats_frame.grid(row=1,column=0)
+    entry_frame.pack()
+    stats_frame.pack(anchor='sw')
     ###################################
     side_nav.grid(row=0, column=0)
     vis_frame.grid(row=0, column=1)
