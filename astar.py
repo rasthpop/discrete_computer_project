@@ -62,20 +62,14 @@ def astar(graph, start, end):
     Implements the A* algorithm for finding the shortest path in a graph.
     """
     node_distances = {node: math.inf for node in graph.nodes}
-    heuristic_distances = {node: 0 for node in graph.nodes}
     path_restore = {node: None for node in graph.nodes}
-
-    end_lat, end_lon = graph.nodes[end]['y'], graph.nodes[end]['x']
-
-    for node in graph.nodes:
-        lat, lon = graph.nodes[node]['y'], graph.nodes[node]['x']
-        heuristic_distances[node] = ox.distance.great_circle(lat, lon, end_lat, end_lon)
 
     node_distances[start] = 0
     visited_nodes = set()
 
     queue = PriorityQueue()
-    queue.put(start, heuristic_distances[start])
+    queue.put(start, 0)
+    end_lat, end_lon = graph.nodes[end]['y'], graph.nodes[end]['x']
 
     while not queue.is_empty():
         curr_node = queue.get()
@@ -99,8 +93,11 @@ def astar(graph, start, end):
                 node_distances[adj_node] = new_distance
                 path_restore[adj_node] = curr_node
 
+                lat, lon = graph.nodes[adj_node]['y'], graph.nodes[adj_node]['x']
+                heuristic = ox.distance.great_circle(lat, lon, end_lat, end_lon)
+
                 # f(n) = g(n) + h(n) for priority in queue
-                total_cost = new_distance + heuristic_distances[adj_node]
+                total_cost = new_distance + heuristic
                 queue.put(adj_node, total_cost)
 
     return None, math.inf
