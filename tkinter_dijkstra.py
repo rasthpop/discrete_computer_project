@@ -93,6 +93,55 @@ def dijkstra(loc_graph, start, end):
     shortest_path = restoration(graph_for_path_restoration, end)
     return shortest_path, node_disctances[end]
 
+def astar(graph, start, end):
+    """
+    Implements the A* algorithm for finding the shortest path in a graph.
+    """
+    node_distances = {node: math.inf for node in graph.nodes}
+    heuristic_distances = {node: 0 for node in graph.nodes}
+    path_restore = {node: None for node in graph.nodes}
+
+    end_lat, end_lon = graph.nodes[end]['y'], graph.nodes[end]['x']
+
+    for node in graph.nodes:
+        lat, lon = graph.nodes[node]['y'], graph.nodes[node]['x']
+        heuristic_distances[node] = ox.distance.great_circle(lat, lon, end_lat, end_lon)
+
+    node_distances[start] = 0
+    visited_nodes = set()
+
+    queue = PriorityQueue()
+    queue.put(start, heuristic_distances[start])
+
+    while not queue.empty():
+        curr_node = queue.get()
+
+        if curr_node in visited_nodes:
+            continue
+
+        if curr_node == end:
+            path = restoration(path_restore, end)
+            return path, node_distances[end]
+
+        visited_nodes.add(curr_node)
+
+        curr_distance = node_distances[curr_node]
+
+        for adj_node, attributes in graph[curr_node].items():
+            edge_distance = attributes[0].get('length', 1)
+            new_distance = curr_distance + edge_distance
+
+            if new_distance < node_distances[adj_node]:
+                node_distances[adj_node] = new_distance
+                path_restore[adj_node] = curr_node
+
+                # f(n) = g(n) + h(n) for priority in queue
+                total_cost = new_distance + heuristic_distances[adj_node]
+                queue.put(adj_node, total_cost)
+
+    return None, math.inf
+
+
 
 @error_handler
 def shortest_distance(origin_point: str, destination_point: str):
@@ -162,7 +211,7 @@ def main():
     entry_frame = Frame(side_nav, padx=20, pady=20)
     stats_frame = Frame(side_nav, padx=20, pady=40)
 
-    ################################### 
+    ###################################
     fi = Figure((5,5), dpi=100)
     ax = fi.add_subplot()
     ax.axis('off')
@@ -181,10 +230,10 @@ def main():
     distance = Label(stats_frame, text="Distance:")
 
     action = Button(
-        entry_frame, 
-        pady=5, 
-        padx=5, 
-        text="Find shortest distance:", 
+        entry_frame,
+        pady=5,
+        padx=5,
+        text="Find shortest distance:",
         command=handle_click
         )
 
