@@ -164,6 +164,7 @@ def main():
             working_distance, route,
             node_size = 0,
             figsize = (5, 5),
+            route_color='#007fff',
             dpi = 100,
             show = False,
             ax = ax
