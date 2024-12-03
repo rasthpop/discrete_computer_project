@@ -56,7 +56,7 @@ def path_restoration(path_restore, curr_node):
     path.reverse()
     return path
 
-
+@track_time
 def dijkstra(graph, start, end):
     """
     Implements Dijkstra's algorithm for finding the shortest path.
@@ -94,7 +94,7 @@ def dijkstra(graph, start, end):
     return path, node_distances[end]
 
 
-@track_time
+
 def main():
     '''
     Main function

@@ -56,7 +56,7 @@ def path_restoration(path_restore, curr_node):
     path.reverse()
     return path
 
-
+@track_time
 def astar(graph, start, end):
     """
     Implements the A* algorithm for finding the shortest path in a graph.
@@ -106,7 +106,7 @@ def astar(graph, start, end):
     return None, math.inf
 
 
-@track_time
+
 def main():
     '''
     Main function

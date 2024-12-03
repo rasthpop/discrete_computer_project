@@ -65,7 +65,9 @@ def dijkstra(loc_graph, start, end):
     '''
     dijkstra algorithm
     '''
-
+    ###############################
+    counter = 0
+    ###############################
     node_disctances = {node: math.inf for node in loc_graph.nodes}
     node_disctances[start] = 0
     graph_for_path_restoration = {node: None for node in loc_graph.nodes}
@@ -85,6 +87,10 @@ def dijkstra(loc_graph, start, end):
             break
 
         for adjacent_node, attributes in loc_graph[current_node].items():
+            #COUNTER
+        ###############################
+            counter += 1
+        ###############################
             edge_distance = attributes[0].get('length', 1)
             new_disctance = current_distance + edge_distance
             if new_disctance < node_disctances[adjacent_node]:
@@ -94,7 +100,7 @@ def dijkstra(loc_graph, start, end):
 
 
     shortest_path = restoration(graph_for_path_restoration, end)
-    return shortest_path, node_disctances[end]
+    return shortest_path, node_disctances[end], counter
 
 def astar(graph, start, end):
     """
@@ -113,6 +119,9 @@ def astar(graph, start, end):
     node_distances[start] = 0
     visited_nodes = set()
 
+    ###############################
+    counter = 0
+    ###############################
     queue = PriorityQueue()
     queue.put(start, heuristic_distances[start])
 
@@ -124,13 +133,17 @@ def astar(graph, start, end):
 
         if curr_node == end:
             path = restoration(path_restore, end)
-            return path, node_distances[end]
+            return path, node_distances[end], counter
 
         visited_nodes.add(curr_node)
 
         curr_distance = node_distances[curr_node]
 
         for adj_node, attributes in graph[curr_node].items():
+            #COUNTER
+        ###############################
+            counter += 1
+        ###############################
             edge_distance = attributes[0].get('length', 1)
             new_distance = curr_distance + edge_distance
 
@@ -165,18 +178,18 @@ def shortest_distance(origin_point: str, destination_point: str, algorithm_type:
     working_graph_area = nx.compose(graph_city1, graph_city2)
     node1 = ox.distance.nearest_nodes(working_graph_area, city1_coords[1], city1_coords[0])
     node2 = ox.distance.nearest_nodes(working_graph_area, city2_coords[1], city2_coords[0])
-    
-    if algorithm_type == 'Dijkstra':
-        shortest_path, distance_total = dijkstra(working_graph_area, node1, node2)
-    else:
-        shortest_path, distance_total = astar(working_graph_area, node1, node2)
 
+    if algorithm_type == 'Dijkstra':
+        shortest_path, distance_total, nodes_count = dijkstra(working_graph_area, node1, node2)
+    else:
+        shortest_path, distance_total, nodes_count = astar(working_graph_area, node1, node2)
 
     time_end = time.time()
+
     exec_time = time_end - time_start
 
     print(shortest_path, distance_total)
-    return exec_time, distance_total, working_graph_area, shortest_path
+    return exec_time, distance_total, working_graph_area, shortest_path, nodes_count
 
 
 def main():
@@ -197,9 +210,10 @@ def main():
         if method == 'Select an algorithm':
             messagebox.showwarning('Error', 'Please select an algorithm and try again.')
             return
-        exec_time, shor_distance, working_distance, route = shortest_distance(start, end, method)
+        exec_time, shor_distance, working_distance, route, nodes_q = shortest_distance(start, end, method)
         duration.config(text=f"Time: {exec_time:.2f}s")
-        distance.config(text=f"Time: {(shor_distance / 1000):.2f}km")
+        distance.config(text=f"Distance: {(shor_distance / 1000):.2f}km")
+        nodes.config(text=f"Nodes Visited: {nodes_q}")
         ax.clear()
         ox.plot_graph(
             working_distance,
@@ -252,6 +266,7 @@ def main():
 
     duration = Label(stats_frame, text="Time:", font=SM)
     distance = Label(stats_frame, text="Distance:", font=SM)
+    nodes = Label(stats_frame, text="Nodes Visited:", font=SM)
 
     action = ttk.Button(
         entry_frame,
@@ -269,11 +284,8 @@ def main():
     action.pack(pady=15)
     duration.pack(anchor='w')
     distance.pack(pady=20, anchor='w')
+    nodes.pack(anchor='w')
     canvas.get_tk_widget().pack()
-
-
-    ###################################
-
 
     ###################################
     entry_frame.pack()
