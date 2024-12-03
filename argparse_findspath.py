@@ -238,7 +238,5 @@ parser.add_argument(
 args: Namespace = parser.parse_args()
 result: str = shortest_distance(args.starting_point, args.destination, args.algorithm)
 
-if args.findspath:
-    print(result)
-else:
-    print(result)
+
+print(result)

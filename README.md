@@ -333,6 +333,31 @@ return None, math.inf
 ### Argparse
 * За допомогою стандартної бібліотеки Argparse ми реалізували інтерфейс роботи у термінал, сама функція викликається через
 ```python argparse_findspath.py -f``` - далі ми вводимо аргументи.
+
+#### Аргументи та функції
+* В першу чергу ми створюємо аргпарсер, з яким ми будемо працювати
+* Для роботи з функціями задані три аргументи для визначення початку\кінця шляху а також алгоритму.
+
+```python
+parser = ArgumentParser()
+
+
+parser.add_argument('starting_point', type=str, help='The starting point from where the algorithm begins')
+parser.add_argument('destination', type=str, help='The destination point that will be connected with the starting point')
+parser.add_argument('algorithm', type=str, help="Type of algorithm that will be used to find the shortest path (dijkstra | a*)")
+```
+
+* Далі створюємо ```Namespace``` для цих аргументів і передаємо їх у функцію ```shortest_distance```. Після цього ми друкуємо результат виводу функції.
+
+```pyhton
+args: Namespace = parser.parse_args()
+result: str = shortest_distance(args.starting_point, args.destination, args.algorithm)
+
+
+print(result)
+```
+
+
 * Ось повна інструкція щодо роботи з парсером аргументів:
 ```cmd
 usage: argparse_findspath.py [-h] [-f] starting_point destination algorithm
